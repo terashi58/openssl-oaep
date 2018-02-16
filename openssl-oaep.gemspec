@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "Add support for OAEP with SHA2 and labels"
   spec.description   = "Minium extention to Ruby OpenSSL library to support OAEP with SHA2 and labels"
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://github.com/terashi58/openssl-oaep"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
