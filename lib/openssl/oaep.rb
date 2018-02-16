@@ -56,7 +56,7 @@ module OpenSSL
       end
 
       # Keep constant calculation even if the text is invaid in order to avoid attacks.
-      good = (em[0] == 0 ? 1 : 0)
+      good = secure_byte_is_zero(em[0])
       masked_seed = em[1...1+mdlen].pack('C*')
       masked_db = em[1+mdlen...em.size].pack('C*')
 
@@ -65,21 +65,21 @@ module OpenSSL
       db_bytes = db.bytes
 
       l_hash = md.digest(label)
-      good &= (l_hash == db_bytes[0...mdlen].pack('C*') ? 1 : 0)
+      good &= secure_hash_eq(l_hash.bytes, db_bytes[0...mdlen])
 
       one_index = 0
       found_one_byte = 0
       (mdlen...db_bytes.size).each do |i|
-        equals1 = db_bytes[i] == 1 ? 1 : 0
-        equals0 = db_bytes[i] == 0 ? 1 : 0
-        one_index = ~found_one_byte & equals1 == 1 ? i : one_index
+        equals1 = secure_byte_eq(db_bytes[i], 1)
+        equals0 = secure_byte_is_zero(db_bytes[i])
+        one_index = secure_select(~found_one_byte & equals1, i, one_index)
         found_one_byte |= equals1
-        good &= ((found_one_byte | equals0) == 1 ? 1 : 0)
+        good &= (found_one_byte | equals0)
       end
 
-      good &= (found_one_byte == 1 ? 1 : 0)
+      good &= found_one_byte
 
-      if good != 1
+      if good.zero?
         raise OpenSSL::PKey::RSAError
       end
 
@@ -103,5 +103,32 @@ module OpenSSL
     end
 
     module_function :mgf1_xor
+
+    # Constant time comparistion utilities.
+    def secure_byte_is_zero(v)
+      v-1 >> 8
+    end
+
+    def secure_byte_eq(v1, v2)
+      secure_byte_is_zero(v1 ^ v2)
+    end
+
+    def secure_select(mask, eq, ne)
+      (mask & eq) | (~mask & ne)
+    end
+
+    def secure_hash_eq(vs1, vs2)
+      # Assumes the given hash values have the same size.
+      # This check is not constant time, but should not depends on the texts.
+      return 0 unless vs1.size == vs2.size
+
+      res = secure_byte_is_zero(0)
+      (0...vs1.size).each do |i|
+        res &= secure_byte_eq(vs1[i], vs2[i])
+      end
+      res
+    end
+
+    module_function :secure_byte_is_zero, :secure_byte_eq, :secure_select, :secure_hash_eq
   end
 end
