@@ -119,4 +119,43 @@ RSpec.describe Openssl::Oaep do
       end
     end
   end
+
+  describe '.secure_byte_is_zero' do
+    it 'returns 1s iff 0 is given' do
+      expect(OpenSSL::PKCS1.secure_byte_is_zero(0)).to eq(-1)
+      (1..255).each do |v|
+        expect(OpenSSL::PKCS1.secure_byte_is_zero(v)).to eq(0)
+      end
+    end
+  end
+
+  describe '.secure_byte_eq' do
+    it 'returns 1s iff values are the same' do
+      expect(OpenSSL::PKCS1.secure_byte_eq(0, 0)).to eq(-1)
+      expect(OpenSSL::PKCS1.secure_byte_eq(100, 100)).to eq(-1)
+      expect(OpenSSL::PKCS1.secure_byte_eq(255, 255)).to eq(-1)
+      expect(OpenSSL::PKCS1.secure_byte_eq(0, 100)).to eq(0)
+      expect(OpenSSL::PKCS1.secure_byte_eq(0, 255)).to eq(0)
+      expect(OpenSSL::PKCS1.secure_byte_eq(100, 255)).to eq(0)
+      expect(OpenSSL::PKCS1.secure_byte_eq(255, 128)).to eq(0)
+    end
+  end
+
+  describe '.secure_select' do
+    it 'returns 1st if the mask is 1s, otherwise 2nd' do
+      expect(OpenSSL::PKCS1.secure_select(0, 1, 0)).to eq(0)
+      expect(OpenSSL::PKCS1.secure_select(-1, 1, 0)).to eq(1)
+      expect(OpenSSL::PKCS1.secure_select(0, 12345, 6789)).to eq(6789)
+      expect(OpenSSL::PKCS1.secure_select(-1, 12345, 6789)).to eq(12345)
+    end
+  end
+
+  describe '.secure_hash_eq' do
+    it 'returns 1s iff values are the same' do
+      expect(OpenSSL::PKCS1.secure_hash_eq(''.bytes, ''.bytes)).to eq(-1)
+      expect(OpenSSL::PKCS1.secure_hash_eq('abcd'.bytes, 'abcd'.bytes)).to eq(-1)
+      expect(OpenSSL::PKCS1.secure_hash_eq('abcd'.bytes, 'abce'.bytes)).to eq(0)
+      expect(OpenSSL::PKCS1.secure_hash_eq('0bcd'.bytes, 'abce'.bytes)).to eq(0)
+    end
+  end
 end

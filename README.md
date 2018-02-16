@@ -18,7 +18,17 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require 'openssl'
+require 'openssl/oaep'
+
+key = OpenSSL::PKey::RSA.new(1024)
+text = 'text'
+label = 'label'
+md = OpenSSL::Digest::SHA256
+cipher_text = key.public_encrypt_oaep(text, label, md)
+raw_text = key.private_decrypt_oaep(cipher_ctext, label, md)
+```
 
 ## Development
 
@@ -34,4 +44,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/terash
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
