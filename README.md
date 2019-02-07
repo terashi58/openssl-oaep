@@ -27,7 +27,7 @@ text = 'text'
 label = 'label'
 md = OpenSSL::Digest::SHA256
 cipher_text = key.public_encrypt_oaep(text, label, md)
-raw_text = key.private_decrypt_oaep(cipher_ctext, label, md)
+raw_text = key.private_decrypt_oaep(cipher_text, label, md)
 ```
 
 ## Development
